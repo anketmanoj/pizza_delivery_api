@@ -15,9 +15,6 @@ class Users(Base):
     is_active = Column(Boolean, server_default='TRUE', nullable=False)
     orders = relationship("Orders", back_populates="users")
 
-    def __repr__(self) -> str:
-        return f"<User {self.username}>"
-
 class Orders(Base):
 
     ORDER_STATUS = (
@@ -40,7 +37,6 @@ class Orders(Base):
     pizza_size = Column(ChoiceType(choices=PIZZA_SIZES), nullable=False, server_default="SMALL")
     flavour = Column(String, nullable=False, server_default="pepperoni")
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE", onupdate="CASCADE"))
-    user = relationship("Users", back_populates="orders")
+    users = relationship("Users", back_populates="orders")
 
-    def __repr__(self) -> str:
-        return f"<Order {self.id}>"
+    
