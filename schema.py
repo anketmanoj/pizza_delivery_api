@@ -1,6 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel
 
+from config import JWT_SECRET
+
 class SignUpModel(BaseModel):
     id : Optional[int]
     username : str
@@ -20,3 +22,10 @@ class SignUpModel(BaseModel):
                 "is_active" : True
             }
         }
+
+class Setting(BaseModel):
+    authjwt_secret_key: str = JWT_SECRET
+
+class LoginUser(BaseModel):
+    username: str
+    password: str
