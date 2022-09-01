@@ -11,6 +11,17 @@ auth_router = APIRouter(
     tags=['Auth']
 )
 
+@auth_router.get("/test")
+async def hello(Authorize: AuthJWT = Depends()):
+    try:
+        Authorize.jwt_required()
+        
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid Token: {e}")
+
+    return {"message" : "JWT works"}
+        
+
 @auth_router.post("/signup", response_model=SignUpModel)
 async def sign_up_user(user: SignUpModel, response: Response, db: SessionLocal = Depends(get_db)):
     checkUserEmail = db.query(Users).filter(Users.email == user.email).first()
@@ -39,10 +50,7 @@ async def sign_up_user(user: SignUpModel, response: Response, db: SessionLocal =
 async def login_user(loginUser: LoginUser, Authorize: AuthJWT = Depends(), db: SessionLocal = Depends(get_db)):
     user = db.query(Users).filter(Users.username == loginUser.username).first()
 
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with username: {user.username} does not exist")
-    
-    if not check_password_hash(user.password, loginUser.password):
+    if not user or not check_password_hash(user.password, loginUser.password):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Incorrect Credentials")
 
     access_token = Authorize.create_access_token(subject=user.username)
@@ -54,6 +62,24 @@ async def login_user(loginUser: LoginUser, Authorize: AuthJWT = Depends(), db: S
     }
 
     return jsonable_encoder(response)
+
+
+@auth_router.get("/refresh")
+async def refresh_token(Authorize: AuthJWT = Depends()):
+    try:
+        Authorize.jwt_refresh_token_required()    
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Invalid Refresh Token")
+
+    current_user = Authorize.get_jwt_subject()
+    access_token = Authorize.create_access_token(subject=current_user) 
+    response = {
+        "access_token" : access_token,
+    }
+
+    return jsonable_encoder(response)
+
+    
     
 
 
