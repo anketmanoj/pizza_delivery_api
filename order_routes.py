@@ -33,6 +33,22 @@ async def place_order(order: OrderModel, Authorize: AuthJWT = Depends(), db: Ses
 
     return new_order
 
+@order_router.get("/all")
+async def get_all_orders(Authorize: AuthJWT = Depends(), db : SessionLocal = Depends(get_db)):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized")
+
+    current_user = Authorize.get_jwt_subject()
+    userQuery = db.query(Users).filter(Users.username == current_user).first()
+
+    if userQuery.is_staff == False:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Only Super User allowed")
+
+    allOrders = db.query(Orders).all()
+
+    return allOrders
 
 
 
