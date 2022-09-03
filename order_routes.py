@@ -50,6 +50,21 @@ async def get_all_orders(Authorize: AuthJWT = Depends(), db : SessionLocal = Dep
 
     return allOrders
 
+@order_router.get("/order/id:{id}")
+async def get_one_order(id: int, Authorize: AuthJWT = Depends(), db: SessionLocal = Depends(get_db)):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized")
+
+    orderDetail = db.query(Orders).filter(Orders.id == id).first()
+
+    if not orderDetail:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order doesnt exist")
+
+    return orderDetail
+
+    
 
 
     
