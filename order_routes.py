@@ -64,7 +64,18 @@ async def get_one_order(id: int, Authorize: AuthJWT = Depends(), db: SessionLoca
 
     return orderDetail
 
-    
+@order_router.get("/users/order")
+async def get_order_for_user(Authorize: AuthJWT = Depends(), db: SessionLocal = Depends(get_db)):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized")
+
+    current_user = Authorize.get_jwt_subject()
+
+    user = db.query(Users).filter(Users.username == current_user).first()
+
+    return jsonable_encoder(user.orders)
 
 
     
